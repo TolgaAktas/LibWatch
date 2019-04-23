@@ -51,12 +51,14 @@ app.get('/',function(req,res){
 var firstPost = true
 
 var boxName = [];
-var insertID = 1; 
+var insertID = 0; 
 app.post('/:rpinumber',function(req,res){
 
     var timestamp = Math.round(req.body.timestamp);
     var colNums = req.body.binCounts.length
-   
+    
+    insertID++;
+    
     if(firstPost){
         for(var i = 0; i < colNums; i++){
             boxName[i] = "Box"+(i+1);
@@ -88,15 +90,12 @@ app.post('/:rpinumber',function(req,res){
         counts.push(req.body.binCounts[j][1]);
     }
     var insert = "INSERT INTO camtable VALUES("+insertID+",CURRENT_TIME(),?)";
-
     var query = con.query(insert,[counts],(err,result)=>{
         if(err)throw err;
         console.log("successfully inserted row: " + insertID);
-        insertID++;
     });
     console.log(query.sql);
-    
-    res.sendStatus(200);
+    res.sendStatus(200);i
 });
 
 
