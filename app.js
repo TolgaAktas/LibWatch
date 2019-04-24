@@ -8,7 +8,7 @@ var app = express();
 var con = mysql.createConnection({
     host: "localhost",
     user: "root",
-    password: "Panorama1#",
+    password: "libwatch1@",
     database: "cambase",
     //port: "3000"
 });
@@ -53,11 +53,11 @@ var firstPost = true
 var boxName = [];
 var insertID = 0; 
 app.post('/:rpinumber',function(req,res){
-
+    
+    insertID++;
     var timestamp = Math.round(req.body.timestamp);
     var colNums = req.body.binCounts.length
     
-    insertID++;
     
     if(firstPost){
         for(var i = 0; i < colNums; i++){
@@ -91,8 +91,14 @@ app.post('/:rpinumber',function(req,res){
     }
     var insert = "INSERT INTO camtable VALUES("+insertID+",CURRENT_TIME(),?)";
     var query = con.query(insert,[counts],(err,result)=>{
-        if(err)throw err;
-        console.log("successfully inserted row: " + insertID);
+        if(err){
+            console.log("CANNOT INSERT ROW: " + insertID); 
+            con.query("DROP TABLE camtable");
+            throw err;
+        }else{
+            console.log("successfully inserted row: " + insertID);
+        }
+        
     });
     console.log(query.sql);
     res.sendStatus(200);i
