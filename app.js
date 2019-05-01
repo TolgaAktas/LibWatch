@@ -50,6 +50,7 @@ app.get('/',function(req,res){
 
 var firstPost = true
 
+var initColNums = 0 
 var boxName = [];
 var insertID = 0; 
 app.post('/:rpinumber',function(req,res){
@@ -57,51 +58,56 @@ app.post('/:rpinumber',function(req,res){
     insertID++;
     var timestamp = Math.round(req.body.timestamp);
     var colNums = req.body.binCounts.length
-    
-    
+   
     if(firstPost){
-        for(var i = 0; i < colNums; i++){
-            boxName[i] = "Box"+(i+1);
-        }
-        for(var i = 1; i <= colNums; i++){
-            if(i == 1){
-                var insrtCol = 'ALTER TABLE camtable ADD COLUMN Box1 INT AFTER created_at'
-            }else{
-                var insrtCol = 'ALTER TABLE camtable ADD COLUMN Box'+i+' INT AFTER Box'+(i-1)
-            }
-            
-            var query = con.query(insrtCol,(err,result)=>{
-                if(err){
-                    console.log("COULDN'T ADD COLUMNS");
-                    con.query("DROP TABLE camtable");
-                    throw err;
-                }
-            });
-        }
-        console.log("ADDED ALL THE COLUMNS");
-        firstPost = false
+        initColNums = colNums;
     }
-    
-    var binNumbers = []
-    var counts = []
 
-    for(var j = 0; j < colNums; j++){
-        binNumbers.push(req.body.binCounts[j][0]);
-        counts.push(req.body.binCounts[j][1]);
-    }
-    var insert = "INSERT INTO camtable VALUES("+insertID+",CURRENT_TIME(),?)";
-    var query = con.query(insert,[counts],(err,result)=>{
-        if(err){
-            console.log("CANNOT INSERT ROW: " + insertID); 
-            con.query("DROP TABLE camtable");
-            throw err;
-        }else{
-            console.log("successfully inserted row: " + insertID);
+    if(initColNums === colNums){
+    
+        if(firstPost){
+            for(var i = 0; i < colNums; i++){
+                boxName[i] = "Box"+(i+1);
+            }
+            for(var i = 1; i <= colNums; i++){
+
+
+                var insrtCol = "ALTER TABLE camtable ADD COLUMN Box"+i+" INT"
+            
+                var query = con.query(insrtCol,(err,result)=>{
+                    if(err){
+                        console.log("COULDN'T ADD COLUMNS");
+                        con.query("DROP TABLE camtable");
+                        throw err;
+                    }
+                });
+            }
+            console.log("ADDED ALL THE COLUMNS");
+            firstPost = false
         }
+    
+        var binNumbers = []
+        var counts = []
+
+        for(var j = 0; j < colNums; j++){
+            binNumbers.push(req.body.binCounts[j][0]);
+            counts.push(req.body.binCounts[j][1]);
+        }
+        var insert = "INSERT INTO camtable VALUES("+insertID+",CURRENT_TIME(),?)";
+        var query = con.query(insert,[counts],(err,result)=>{
+            if(err){
+                console.log("CANNOT INSERT ROW: " + insertID); 
+                con.query("DROP TABLE camtable");
+                throw err;
+            }else{
+                console.log("successfully inserted row: " + insertID);
+                res.sendStatus(200);
+            }
         
-    });
-    console.log(query.sql);
-    res.sendStatus(200);i
+        });
+        console.log(query.sql);
+        //res.sendStatus(200);
+    }
 });
 
 
